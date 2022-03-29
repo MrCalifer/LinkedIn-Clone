@@ -243,6 +243,9 @@ const SignOut = styled.div`
   transition-duration: 167ms;
   text-align: center;
   display: none;
+  @media (max-width: 768px) {
+    top : -30px;
+  }
 `;
 
 const User = styled(NavList)`

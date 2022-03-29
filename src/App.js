@@ -22,10 +22,6 @@ function App(props) {
     <div className="App">
       <Router>
         <Routes>
-          {/* <Route path="/" element={<>
-            {props.user && <Navigate to="/home" />}
-            {!props.user && <Navigate to="/login" />}
-          </>}/> */}
           <Route path="/" element={<Login user={props}/>} />
           <Route
             path="/home"

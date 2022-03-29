@@ -9,7 +9,7 @@ import { getUserAuth } from "../actions";
 const Home = (props) => {
   return (
     <Container>
-      {!props.user && <Navigate to="/" />}/
+      {!props.user && <Navigate to="/" />}
       <Section>
         <h5>
           <a>Hiring in a hurry? -</a>

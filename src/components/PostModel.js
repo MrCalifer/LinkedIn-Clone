@@ -1,11 +1,64 @@
 import styled from "styled-components";
 import { useState } from "react";
+import { connect } from "react-redux";
+import ReactPlayer from "react-player";
+import { connet } from "react-redux";
+import firebase from "firebase/compat/app";
+import { postArticleAPI } from "../actions";
+
+const getUserName = (props) => {
+  if (props.user != null) {
+    return props.user.displayName;
+  } else {
+    return "Name";
+  }
+};
 
 const PostModel = (props) => {
   const [editorText, setEditorText] = useState("");
+  const [shareImage, setShareImage] = useState("");
+  const [shareVideo, setShareVideo] = useState("");
+  const [assetArea, setAssetArea] = useState("");
+
+  const handleChange = (e) => {
+    const image = e.target.files[0];
+
+    if (image === " " || image == "undefined") {
+      alert(`Not an image, the file is a ${typeof image}`);
+      return;
+    }
+    setShareImage(image);
+  };
+
+  const switchAssetArea = (area) => {
+    setShareImage("");
+    setShareVideo("");
+    setAssetArea(area);
+  };
+
+  const postArticle = (e) => {
+    e.preventDefault();
+    if (e.target !== e.currentTarget) {
+      return;
+    }
+
+    const payload = {
+      image: shareImage,
+      video: shareVideo,
+      user: props.user,
+      description: editorText,
+      timestamp: firebase.firestore.Timestamp.now(),
+    };
+
+    props.postArticle(payload);
+    reset(e);
+  };
 
   const reset = (event) => {
     setEditorText("");
+    setShareImage("");
+    setShareVideo("");
+    setAssetArea("");
     props.handleClick(event);
   };
 
@@ -23,8 +76,12 @@ const PostModel = (props) => {
 
             <SharedContent>
               <UserInfo>
-                <img src="/images/user.svg" alt="" />
-                <span>Name</span>
+                {props.user && props.user.photoURL ? (
+                  <img src={props.user.photoURL} alt="" />
+                ) : (
+                  <img src="/images/user.svg" alt="" />
+                )}
+                <span>{getUserName(props)}</span>
               </UserInfo>
               <Editor>
                 <textarea
@@ -32,16 +89,49 @@ const PostModel = (props) => {
                   onChange={(e) => setEditorText(e.target.value)}
                   placeholder="What do you want to talk about?"
                   autoFocus={true}
-                ></textarea>
+                />
               </Editor>
+              {assetArea === "image" ? (
+                <UploadImage>
+                  <input
+                    type="file"
+                    accept="image/gifs , image/jpeg , image/jpg , image/png"
+                    name="image"
+                    id="file"
+                    style={{ display: "none" }}
+                    onChange={handleChange}
+                  />
+                  <p>
+                    <label htmlFor="file" style={{ cursor: "pointer" }}>
+                      Select an image to share.
+                    </label>
+                  </p>
+                  {shareImage && <img src={URL.createObjectURL(shareImage)} />}
+                </UploadImage>
+              ) : (
+                assetArea === "media" && (
+                  <>
+                    <input
+                      type="text"
+                      placeholder="Enter a video link."
+                      value={shareVideo}
+                      style={{ border: "none" }}
+                      onChange={(e) => setShareVideo(e.target.value)}
+                    ></input>
+                    {shareVideo && (
+                      <ReactPlayer width={"100%"} url={shareVideo} />
+                    )}
+                  </>
+                )
+              )}
             </SharedContent>
 
             <SharedCreation>
               <AttachAssets>
-                <AssetButton>
+                <AssetButton onClick={() => switchAssetArea("image")}>
                   <img src="/images/share-image.svg" alt="" />
                 </AssetButton>
-                <AssetButton>
+                <AssetButton onClick={() => switchAssetArea("media")}>
                   <img src="/images/share-video.svg" alt="" />
                 </AssetButton>
               </AttachAssets>
@@ -51,7 +141,9 @@ const PostModel = (props) => {
                   Anyone
                 </AssetButton>
               </ShareComment>
-              <PostButton>Post</PostButton>
+              <PostButton disabled={!editorText ? true : false} onClick={(event) => postArticle(event)}>
+                Post
+              </PostButton>
             </SharedCreation>
           </Content>
         </Container>
@@ -69,6 +161,7 @@ const Container = styled.div`
   z-index: 9999;
   color: black;
   background-color: rgba(0, 0, 0, 0.8);
+  animation: fadeIn 0.5s;
 `;
 
 const Content = styled.div`
@@ -106,7 +199,8 @@ const Header = styled.div`
     background-color: white;
     vertical-align: middle;
     cursor: pointer;
-    svg,img {
+    svg,
+    img {
       pointer-events: none;
     }
     &:hover {
@@ -197,14 +291,16 @@ const PostButton = styled.button`
   border: none;
   padding-left: 16px;
   vertical-align: middle;
-  cursor: pointer;
+  cursor: ${(props) => (props.disabled ? "no-drop" : "pointer")};
   padding-right: 16px;
-  color: darkgray;
+  color: ${(props) => (props.disabled ? "black" : "white")};
+  background-color: ${(props) => (props.disabled ? "drakgray" : "#0a66c2")};
   outline: none;
   transition: 170ms;
   &:hover {
-    background-color: #0a66c2;
-    color: white;
+    background-color: ${(props) => (props.disabled ? "drakgray" : "#0a66c2")};
+    color: ${(props) => (props.disabled ? "black" : "white")};
+    cursor: ${(props) => (props.disabled ? "no-drop" : "pointer")};
   }
 `;
 
@@ -225,4 +321,24 @@ const Editor = styled.div`
   }
 `;
 
-export default PostModel;
+const UploadImage = styled.div`
+  text-align: center;
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    margin-bottom: 5px;
+  }
+`;
+
+const mapStateToProps = (state) => {
+  return {
+    user: state.userState.user,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+  postArticle :(payload) => dispatch(postArticleAPI(payload)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(PostModel);

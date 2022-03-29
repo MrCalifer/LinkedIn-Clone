@@ -26,7 +26,7 @@ function App(props) {
             {props.user && <Navigate to="/home" />}
             {!props.user && <Navigate to="/login" />}
           </>}/> */}
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Login user={props}/>} />
           <Route
             path="/home"
             element={

@@ -91,7 +91,7 @@ const FeedList = styled.ul`
         & > div{
             display: flex;
             flex-direction: column;
-
+            margin-left: 15px;
         }
 
         button {

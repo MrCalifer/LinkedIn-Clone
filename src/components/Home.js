@@ -9,8 +9,7 @@ import { getUserAuth } from "../actions";
 const Home = (props) => {
   return (
     <Container>
-      {!props.user && <Navigate to="/" />}
-      {/* {props.user && <Navigate to="/home" />} */}
+      {!props.user && <Navigate to="/" />}/
       <Section>
         <h5>
           <a>Hiring in a hurry? -</a>
@@ -33,6 +32,7 @@ const Home = (props) => {
 const Container = styled.div`
   padding-top: 52px;
   max-width: 100%;
+  animation : fadeIn 0.4s;
 `;
 
 const Content = styled.div`

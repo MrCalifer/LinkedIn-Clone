@@ -1,10 +1,17 @@
 import { connect } from "react-redux";
 import styled from "styled-components";
 import PostModel from "./PostModel";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getArticleAPI } from "../actions";
+import ReactPlayer from "react-player";
 
 const Main = (props) => {
   const [showModel, setShowModel] = useState("close");
+
+  useEffect(() => {
+    props.getArticle();
+  }, []);
+
   const handleClick = (e) => {
     e.preventDefault();
     if (e.target !== e.currentTarget) {
@@ -24,103 +31,125 @@ const Main = (props) => {
     }
   };
   return (
-    <Container>
-      <ShareBox>
-        <div>
-          {props.user && props.user.photoURL ? (
-            <img src={props.user.photoURL} alt="" />
-          ) : (
-            <img src="/images/user.svg" alt="" />
-          )}
-          <button onClick={handleClick}>Start a post.</button>
-        </div>
-        <div>
-          <button>
-            <img src="/images/photo-icon.svg" alt="" />
-            <span>Photo</span>
-          </button>
-
-          <button>
-            <img src="/images/video-icon.svg" alt="" />
-            <span>Video</span>
-          </button>
-
-          <button>
-            <img src="/images/event-icon.svg" alt="" />
-            <span>Event</span>
-          </button>
-
-          <button>
-            <img src="/images/article-icon.svg" alt="" />
-            <span>Write article</span>
-          </button>
-        </div>
-      </ShareBox>
-
-      <div>
-        <Article>
-          <SharedActor>
-            <a>
-              <img src="/images/user.svg" alt="" />
-              <div>
-                <span>Title</span>
-                <span>Info</span>
-                <span>Date</span>
-              </div>
-            </a>
-            <button>
-              <img src="/images/ellipise-icon.svg" alt="" />
-            </button>
-          </SharedActor>
-          <Description>Description</Description>
-          <SharedImage>
-            <a>
-              <img
-                src="https://images.unsplash.com/photo-1583139937873-dddd56279d3d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1yZWxhdGVkfDZ8fHxlbnwwfHx8fA%3D%3D&auto=format&fit=crop&w=500&q=60"
-                alt=""
-              />
-            </a>
-          </SharedImage>
-          <SocialCount>
-            <li>
-              <button>
-                <img
-                  src="https://static-exp1.licdn.com/sc/h/d310t2g24pvdy4pt1jkedo4yb"
-                  alt=""
-                />
-                <img
-                  src="https://static-exp1.licdn.com/sc/h/5thsbmikm6a8uov24ygwd914f"
-                  alt=""
-                />
-                <span>75k</span>
+    <>
+      {props.articles.length === 0 ? (
+        <p>There is no post yet!.</p>
+      ) : (
+        <Container>
+          <ShareBox>
+            <div>
+              {props.user && props.user.photoURL ? (
+                <img src={props.user.photoURL} alt="" />
+              ) : (
+                <img src="/images/user.svg" alt="" />
+              )}
+              <button
+                onClick={handleClick}
+                disabled={props.loading ? true : false}
+              >
+                Start a post.
               </button>
-            </li>
-            <li>
-              <a>2 comments</a>
-            </li>
-          </SocialCount>
-          <SocialAction>
-            <button>
-              <img src="/images/like-icon.svg" alt="" />
-              <span>Like</span>
-            </button>
-            <button>
-              <img src="/images/comment-icon.svg" alt="" />
-              <span>Comment</span>
-            </button>
-            <button>
-              <img src="/images/share-icon.svg" alt="" />
-              <span>Share</span>
-            </button>
-            <button>
-              <img src="/images/send-icon.svg" alt="" />
-              <span>Send</span>
-            </button>
-          </SocialAction>
-        </Article>
-      </div>
-      <PostModel showModel={showModel} handleClick={handleClick}/>
-    </Container>
+            </div>
+            <div>
+              <button>
+                <img src="/images/photo-icon.svg" alt="" />
+                <span>Photo</span>
+              </button>
+
+              <button>
+                <img src="/images/video-icon.svg" alt="" />
+                <span>Video</span>
+              </button>
+
+              <button>
+                <img src="/images/event-icon.svg" alt="" />
+                <span>Event</span>
+              </button>
+
+              <button>
+                <img src="/images/article-icon.svg" alt="" />
+                <span>Write article</span>
+              </button>
+            </div>
+          </ShareBox>
+          <Content>
+            {props.loading && <img src="/images/spin-icon.svg" alt="" />}
+
+            {props.articles.length > 0 &&
+              props.articles.map((article, key) => (
+                <Article key={key}>
+                  <SharedActor>
+                    <a>
+                      <img src={article.user.image} alt="" />
+                      <div>
+                        <span>{article.user.title}</span>
+                        <span>{article.user.email}</span>
+                        <span>
+                          {article.user.date
+                            .toDate()
+                            .toLocaleTimeString("en-US")}
+                        </span>
+                      </div>
+                    </a>
+                    <button>
+                      <img src="/images/ellipise-icon.svg" alt="" />
+                    </button>
+                  </SharedActor>
+                  <Description>{article.description}</Description>
+                  <SharedImage>
+                    <a>
+                      {!article.shareImg && article.video ? (
+                        <ReactPlayer width={"100%"} url={article.video} />
+                      ) : (
+                        article.shareImg && (
+                          <img src={article.shareImg} alt="" />
+                        )
+                      )}
+                    </a>
+                  </SharedImage>
+                  <SocialCount>
+                    <li>
+                      <button>
+                        <img
+                          src="https://static-exp1.licdn.com/sc/h/d310t2g24pvdy4pt1jkedo4yb"
+                          alt=""
+                        />
+                        <img
+                          src="https://static-exp1.licdn.com/sc/h/5thsbmikm6a8uov24ygwd914f"
+                          alt=""
+                        />
+                        <span>75k</span>
+                      </button>
+                    </li>
+                    <li>
+                      <a>{article.comments} comments</a>
+                    </li>
+                  </SocialCount>
+                  <SocialAction>
+                    <button>
+                      <img src="/images/like-icon.svg" alt="" />
+                      <span>Like</span>
+                    </button>
+                    <button>
+                      <img src="/images/comment-icon.svg" alt="" />
+                      <span>Comment</span>
+                    </button>
+                    <button>
+                      <img src="/images/share-icon.svg" alt="" />
+                      <span>Share</span>
+                    </button>
+                    <button>
+                      <img src="/images/send-icon.svg" alt="" />
+                      <span>Send</span>
+                    </button>
+                  </SocialAction>
+                </Article>
+              ))}
+          </Content>
+          <PostModel showModel={showModel} handleClick={handleClick} />
+        </Container>
+      )}
+    </>
   );
 };
 
@@ -296,13 +325,28 @@ const SocialCount = styled.ul`
   overflow: auto;
   margin: 0 16px;
   padding: 8px 0;
+  justify-content: space-between;
   border-bottom: 1px solid #e9e5df;
   list-style: none;
   li {
     margin-right: 5px;
     font-size: 12px;
     button {
+      border: none;
+      background-color: white;
       display: flex;
+      img {
+        width: 20px;
+        height: 20px;
+      }
+      span {
+        margin-left: 8px;
+        display: flex;
+        height: 20px;
+        justify-content: center;
+        align-items: center;
+        vertical-align: middle;
+      }
     }
   }
 `;
@@ -334,10 +378,23 @@ const SocialAction = styled.div`
   }
 `;
 
+const Content = styled.div`
+  text-align: center;
+  & > img {
+    width: 40px;
+  }
+`;
+
 const mapStateToProps = (state) => {
   return {
+    loading: state.articalState.loading,
     user: state.userState.user,
+    articles: state.articalState.articles,
   };
 };
 
-export default connect(mapStateToProps)(Main);
+const mapDispatchToProps = (dispatch) => ({
+  getArticle: () => dispatch(getArticleAPI()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Main);

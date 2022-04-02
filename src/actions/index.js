@@ -1,6 +1,6 @@
 import { auth, provider, strorage } from "../firebase";
 import db from "../firebase";
-import { SET_USER, SET_LOADING_STATUS , GET_ARTICLES} from "./actionType";
+import { SET_USER, SET_LOADING_STATUS, GET_ARTICLES } from "./actionType";
 
 export const setUser = (payload) => ({
   type: SET_USER,
@@ -19,7 +19,7 @@ export const setLoading = (status) => ({
 
 export const getArticle = (payload) => ({
   type: GET_ARTICLES,
-  payload : payload,
+  payload: payload,
 });
 
 /**
@@ -112,19 +112,38 @@ export function postArticleAPI(payload) {
         }
       );
     } else if (payload.video != "") {
-      db.collection("articles").add({
-        user: {
-          email: payload.user.email,
-          title: payload.user.displayName,
-          date: payload.timestamp,
-          image: payload.user.photoURL,
+      console.log("Video Upload Started");
+      const upload = strorage
+        .ref(`videos/${payload.video.name}`)
+        .put(payload.video);
+      upload.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(`Progress : ${progress}%`);
+          if (snapshot.state === "RUNNING") {
+            console.log(`Progress : ${progress}%`);
+          }
         },
-        video: payload.video,
-        shareImg: "",
-        comments: 0,
-        description: payload.description,
-      });
-      dispatch(setLoading(false));
+        (error) => console.log(error.code),
+        async () => {
+          const downloadURL = await upload.snapshot.ref.getDownloadURL();
+          db.collection("articles").add({
+            user: {
+              email: payload.user.email,
+              title: payload.user.displayName,
+              date: payload.timestamp,
+              image: payload.user.photoURL,
+            },
+            video: downloadURL,
+            shareImg: "",
+            comments: 0,
+            description: payload.description,
+          });
+          dispatch(setLoading(false));
+        }
+      );
     }
   };
 }

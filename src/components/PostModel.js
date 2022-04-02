@@ -49,7 +49,7 @@ const PostModel = (props) => {
       description: editorText,
       timestamp: firebase.firestore.Timestamp.now(),
     };
-
+    console.log(payload);
     props.postArticle(payload);
     reset(e);
   };
@@ -66,12 +66,12 @@ const PostModel = (props) => {
   const videoInputFile = useRef(null);
 
   const onClick = (mediaType) => {
+    switchAssetArea(mediaType);
     if (mediaType === "image") {
       imageInputFile.current.click();
     } else if (mediaType === "media") {
       videoInputFile.current.click();
     }
-    switchAssetArea(mediaType);
   };
 
   return (
@@ -113,7 +113,7 @@ const PostModel = (props) => {
                     {shareVideo && (
                       <ReactPlayer
                         width={"100%"}
-                        url={shareVideo}
+                        url={URL.createObjectURL(shareVideo)}
                         height={"100%"}
                         controls={"true"}
                       />
@@ -147,9 +147,7 @@ const PostModel = (props) => {
                     id="video"
                     ref={videoInputFile}
                     style={{ display: "none" }}
-                    onChange={(e) =>
-                      setShareVideo(URL.createObjectURL(e.target.files[0]))
-                    }
+                    onChange={(e) => setShareVideo(e.target.files[0])}
                   />
                   <AssetButton onClick={() => onClick("media")}>
                     <img src="/images/share-video.svg" alt="" />

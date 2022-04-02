@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { connect } from "react-redux";
 import ReactPlayer from "react-player";
 import { connet } from "react-redux";
@@ -62,6 +62,18 @@ const PostModel = (props) => {
     props.handleClick(event);
   };
 
+  const imageInputFile = useRef(null);
+  const videoInputFile = useRef(null);
+
+  const onClick = (mediaType) => {
+    if (mediaType === "image") {
+      imageInputFile.current.click();
+    } else if (mediaType === "media") {
+      videoInputFile.current.click();
+    }
+    switchAssetArea(mediaType);
+  };
+
   return (
     <>
       {props.showModel === "open" && (
@@ -93,33 +105,18 @@ const PostModel = (props) => {
               </Editor>
               {assetArea === "image" ? (
                 <UploadImage>
-                  <input
-                    type="file"
-                    accept="image/gifs , image/jpeg , image/jpg , image/png"
-                    name="image"
-                    id="file"
-                    style={{ display: "none" }}
-                    onChange={handleChange}
-                  />
-                  <p>
-                    <label htmlFor="file" style={{ cursor: "pointer" }}>
-                      Select an image to share.
-                    </label>
-                  </p>
                   {shareImage && <img src={URL.createObjectURL(shareImage)} />}
                 </UploadImage>
               ) : (
                 assetArea === "media" && (
                   <>
-                    <input
-                      type="text"
-                      placeholder="Enter a video link."
-                      value={shareVideo}
-                      style={{ border: "none" }}
-                      onChange={(e) => setShareVideo(e.target.value)}
-                    ></input>
                     {shareVideo && (
-                      <ReactPlayer width={"100%"} url={shareVideo} />
+                      <ReactPlayer
+                        width={"100%"}
+                        url={shareVideo}
+                        height={"100%"}
+                        controls={"true"}
+                      />
                     )}
                   </>
                 )
@@ -128,12 +125,36 @@ const PostModel = (props) => {
 
             <SharedCreation>
               <AttachAssets>
-                <AssetButton onClick={() => switchAssetArea("image")}>
-                  <img src="/images/share-image.svg" alt="" />
-                </AssetButton>
-                <AssetButton onClick={() => switchAssetArea("media")}>
-                  <img src="/images/share-video.svg" alt="" />
-                </AssetButton>
+                <div>
+                  <input
+                    type="file"
+                    accept="image/gifs , image/jpeg , image/jpg , image/png"
+                    name="image"
+                    id="image"
+                    ref={imageInputFile}
+                    style={{ display: "none" }}
+                    onChange={handleChange}
+                  />
+                  <AssetButton onClick={() => onClick("image")}>
+                    <img src="/images/share-image.svg" alt="" />
+                  </AssetButton>
+                </div>
+                <div>
+                  <input
+                    type="file"
+                    accept="video/mp4 , video/mkv , video/avi"
+                    name="video"
+                    id="video"
+                    ref={videoInputFile}
+                    style={{ display: "none" }}
+                    onChange={(e) =>
+                      setShareVideo(URL.createObjectURL(e.target.files[0]))
+                    }
+                  />
+                  <AssetButton onClick={() => onClick("media")}>
+                    <img src="/images/share-video.svg" alt="" />
+                  </AssetButton>
+                </div>
               </AttachAssets>
               <ShareComment>
                 <AssetButton>
@@ -141,7 +162,10 @@ const PostModel = (props) => {
                   Anyone
                 </AssetButton>
               </ShareComment>
-              <PostButton disabled={!editorText ? true : false} onClick={(event) => postArticle(event)}>
+              <PostButton
+                disabled={!editorText ? true : false}
+                onClick={(event) => postArticle(event)}
+              >
                 Post
               </PostButton>
             </SharedCreation>
@@ -338,7 +362,7 @@ const mapStateToProps = (state) => {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  postArticle :(payload) => dispatch(postArticleAPI(payload)),
+  postArticle: (payload) => dispatch(postArticleAPI(payload)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(PostModel);

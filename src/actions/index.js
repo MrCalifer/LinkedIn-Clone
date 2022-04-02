@@ -144,6 +144,20 @@ export function postArticleAPI(payload) {
           dispatch(setLoading(false));
         }
       );
+    }else{
+      db.collection("articles").add({
+        user: {
+          email: payload.user.email,
+          title: payload.user.displayName,
+          date: payload.timestamp,
+          image: payload.user.photoURL,
+        },
+        video: "",
+        shareImg: "",
+        comments: 0,
+        description: payload.description,
+      });
+      dispatch(setLoading(false));
     }
   };
 }

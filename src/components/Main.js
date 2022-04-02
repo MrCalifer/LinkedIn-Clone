@@ -104,7 +104,7 @@ const Main = (props) => {
                           url={article.video}
                           height={"100%"}
                           controls={"true"}
-                        />
+                        /> 
                       ) : (
                         article.shareImg && (
                           <img src={article.shareImg} alt="" />
